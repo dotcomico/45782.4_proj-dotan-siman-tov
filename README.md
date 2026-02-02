@@ -1,104 +1,178 @@
-# admin  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY3Mzg5MDE5LCJleHAiOjE3Njc5OTM4MTl9.lCCRPR8HbDWh7XS5A3BVImkIipn_ag-7S3D74HkgCUc
-# maneger
-# customer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzY3Mzg4OTMyLCJleHAiOjE3Njc5OTM3MzJ9.ZwE69gUyFpE3d7PkjuJ03LMzIixyfl8nmFbcyk05e-g
 
-supermarket-api/
-├── node_modules/
-├── public/
-│   └── uploads/          <-- Images saved by Multer
-├── src/
-│   ├── config/
-│   │   ├── database.js   <-- Sequelize connection
-│   │   └── constants.js  <-- [NEW] Global ROLES and ORDER_STATUS
-│   ├── middleware/
-│   │   ├── auth.js       <-- JWT verification
-│   │   ├── checkRole.js  <-- Uses ROLES constant
-│   │   └── multer.js     <-- File upload logic
-│   ├── models/
-│   │   ├── User.js       <-- Updated with ROLES enum
-│   │   ├── Product.js    <-- Name, price, stock, image
-│   │   ├── Order.js      <-- Updated with ORDER_STATUS enum
-│   │   └── OrderItem.js  <-- Bridge table (Snapshot of price/qty)
-│   ├── controllers/      <-- [NEW] Heavy logic lives here
-│   │   ├── authController.js
-│   │   ├── productController.js
-│   │   └── orderController.js
-│   ├── routes/
-│   │   ├── auth.js       
-│   │   ├── users.js      <-- [NEW] Admin user management
-│   │   ├── products.js   
-│   │   └── orders.js     
-│   └── server.js         <-- Entry point & Model Associations
-├── .env                  <-- JWT_SECRET, PORT
-└── package.json
+# 🛒 Supermarket – Full-Stack E-commerce Application
 
-## Phase 1: Backend Foundation & Configuration
-Before writing business logic, set up the "plumbing" of your application.
+Modern supermarket web app with customer shopping + admin panel.
 
-[ ] Environment Setup: Create a .env file to store sensitive data like PORT, JWT_SECRET, and DB_NAME.✅
+- **Frontend**: React 19 + TypeScript + Vite  
+- **Backend**:  Python Flask + SQLAlchemy (SQLite) + JWT  
+- **Features**: product catalog, cart, checkout, order history, admin CRUD (products/categories/orders/users)
 
-[ ] Sequelize Connection: In a new config/database.js (or within server.js), initialize Sequelize to connect to SQLite.✅
+## 🎯 Quick Start – Fastest Way (Docker)
 
-Key Concept: new Sequelize({ dialect: 'sqlite', storage: './database.sqlite' }).✅
+```bash
+# 1. Start backend (port 3000)
+docker pull dotcoms/supermarket-backend:latest
+docker run -d -p 3000:3000 dotcoms/supermarket-backend:latest
 
-[ ] Server Entry Point (server.js): * Set up Express app, use cors(), express.json(), and express.static('public/uploads') to serve images.
+# 2. Start frontend (port 80)
+docker pull dotcoms/supermarket-frontend:latest
+docker run -d -p 80:80 dotcoms/supermarket-frontend:latest
+```
 
-Use ES6 Modules: Ensure "type": "module" is in your package.json.✅
+→ Open http://localhost
 
-## Phase 2: Models & Database Schema (ORM)
-Define how your data looks. Since it's a supermarket app, you need Users, Products, and Orders.
+> The Docker images already contain seeded test data.
 
-[ ] User Model (models/User.js):
+Test accounts (all passwords: `Test123!`):
 
-Key Concept: sequelize.define('User', { ... }).
+| Role     | Email                |
+|----------|----------------------|
+| Admin    | admin@test.com       |
+| Manager  | manager@test.com     |
+| Customer | customer@test.com    |
 
-Fields: username, email, password, and role (enum: 'admin', 'manager', 'customer').
+## 🚀 Quick Start – Local Development
 
-[ ] Product & Order Models: Create models for items and transactions.
+### Prerequisites
 
-[ ] Associations: Define relationships (e.g., User.hasMany(Order)).
+- Node.js 18+ / npm
+- Python 3.11+
+- Git
 
-## Phase 3: Security & Middleware
-This is the "brain" of your RBAC (Role-Based Access Control) and Authentication.
+### Step-by-step
 
-[ ] Auth Middleware (middleware/auth.js):
+```bash
+# 1. Clone repository
+git clone <your-repo-url>
+cd supermarket
 
-Key Concept: jwt.verify(token, process.env.JWT_SECRET).
+# 2. Backend
+cd backend-py
+python -m venv venv
+source venv/bin/activate     # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
-This extracts the user ID from the header and attaches it to req.user.
+# Optional: fresh database + test data
+rm database.sqlite           # or supermarket.db – whatever your config uses
+python seed_database.py
 
-[ ] Role Middleware (middleware/checkRole.js):
+# Start backend
+python -m src.main
+# → http://localhost:3000
+```
 
-Create a function that checks if req.user.role matches the required role for a route.
+```bash
+# 3. Frontend (in new terminal)
+cd ../frontend
+npm install
+npm run dev
+# → http://localhost:5173
+```
 
-[ ] Password Hashing: Use bcrypt.hash during registration and bcrypt.compare during login.
+Frontend expects backend at `http://localhost:3000`
 
-## Phase 4: Routes & Business Logic (CRUD)
-Connect your models to the internet via Express routes.
+## 🛠️ Tech Stack
 
-[ ] Auth Routes: POST /register and POST /login.
+| Layer      | Technologies                              |
+|------------|-------------------------------------------|
+| Frontend   | React 19, TypeScript, Vite, React Router 7, Zustand, Axios |
+| Backend    | Python 3.11, Flask, SQLAlchemy, JWT, Flask-CORS |
+| Database   | SQLite (file-based)                       |
+| Deployment | Docker (separate images per layer)        |
 
-[ ] Product Routes (with Multer): * Key Concept: upload.single('image'). Use Multer to handle the file upload before saving the file path to the database.
+## ✨ Main Features
 
-[ ] Order Routes: Implement logic for "buying." Ensure the user is authenticated before allowing an order to be created.
+**Customer**
+- Browse & search products
+- Category navigation
+- Cart & checkout
+- Order history
+- Profile
 
-## Phase 5: Frontend Development (React + Vite)
-Now, build the interface to consume your API.
+**Admin / Manager**
+- Dashboard (stats, low-stock alerts)
+- Product CRUD
+- Category management
+- Order status management
+- User role management
 
-[ ] Folder Structure: Create folders for components, pages, hooks, and services.
+## 🔐 Test Credentials
 
-[ ] Axios Instance: Create a services/api.js file to set the baseURL so you don't type http://localhost:5000 every time.
+All environments use the same test accounts:
 
-[ ] Authentication State: Use useContext or a state manager to keep track of the logged-in user and their JWT.
+| Role     | Email                | Password   |
+|----------|----------------------|------------|
+| Admin    | admin@test.com       | Test123!   |
+| Manager  | manager@test.com     | Test123!   |
+| Customer | customer@test.com    | Test123!   |
 
-[ ] Protected Routes: Create a component that redirects users to /login if they aren't authenticated or don't have the right role.
+## 📁 Project Structure (simplified)
 
-[ ] Forms & Validation: Use useState to handle inputs for adding products (Admin) or checking out (Customer).
+```
+supermarket/
+├── frontend/                # React + Vite app
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── features/
+│   │   ├── store/ (Zustand)
+│   │   └── routes/
+│   └── vite.config.ts
+│
+├── backend-py/              # Flask API
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   └── main.py
+│   ├── public/uploads/
+│   ├── seed_database.py
+│   └── requirements.txt
+```
 
-#### Term,Implementation Detail
-RBAC,       Restricting routes based on user.role (Admin vs Customer).
-JWT,        Sent in the Authorization: Bearer <token> header.
-Multer,     Middleware for multipart/form-data (Image uploads).
-Bcrypt,     saltRounds = 10 is the standard for hashing.
-Sequelize,  Use .sync() to generate tables in your SQLite file.
-CRUD,       Create (POST), Read (GET), Update (PUT), Delete (DELETE).
+## 📌 Important Backend API Endpoints
+
+**Auth**
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET  /api/auth/me`
+
+**Products**
+- `GET  /api/products`
+- `GET  /api/products/:id`
+- `POST /api/products` (admin)
+- `PUT  /api/products/:id` (admin)
+- `DELETE /api/products/:id` (admin)
+
+**Orders**
+- `GET  /api/orders` (own orders)
+- `POST /api/orders`
+- `PUT  /api/orders/:id/status` (admin/manager)
+
+**Admin only**
+- `GET  /api/users`
+- `PUT  /api/users/:id/role`
+- `DELETE /api/users/:id`
+
+(Full list available in original backend README)
+
+## 🔄 Reset & Re-seed Database
+
+```bash
+cd backend-py
+rm database.sqlite
+python seed_database.py
+```
+
+Includes:
+- 60 categories (12 parents + subcategories)
+- 62 products (some low/out-of-stock for testing)
+- 5 realistic orders in different states
+
+## ⚙️ Environment Variables (backend)
+
+| Name         | Description                  | Required? | Default    |
+|--------------|------------------------------|-----------|------------|
+| `PORT`       | Server port                  | no        | 3000       |
+| `JWT_SECRET` | Secret for signing tokens    | **yes**   | —          |
+| `DB_STORAGE` | SQLite file path             | no        | `./database.sqlite` |
